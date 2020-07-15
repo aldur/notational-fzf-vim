@@ -178,15 +178,20 @@ function! s:handler(lines) abort
      return s:yank_to_register(hashes)
    else
        let filenames = a:lines[2:]
-       let candidates = []
-       for filename in filenames
-           " Don't forget trailing space in replacement.
-           let linenum = substitute(filename, '\v.{-}:(\d+):.*$', '+\1 ', '')
-           let name = substitute(filename, '\v(.{-}):\d+:.*$', '\1', '')
-           " fnameescape instead of shellescape because the file is consumed
-           " by vim rather than the shell
-           call add(candidates, linenum . fnameescape(name))
-       endfor
+       if len(filenames) == 0
+           " If there are no files, create a note with \enter as well.
+           let candidates = [fnameescape(s:main_dir  . '/' . query . s:ext)]
+       else
+           let candidates = []
+           for filename in filenames
+               " Don't forget trailing space in replacement.
+               let linenum = substitute(filename, '\v.{-}:(\d+):.*$', '+\1 ', '')
+               let name = substitute(filename, '\v(.{-}):\d+:.*$', '\1', '')
+               " fnameescape instead of shellescape because the file is consumed
+               " by vim rather than the shell
+               call add(candidates, linenum . fnameescape(name))
+           endfor
+       endif
    endif
 
    for candidate in candidates
