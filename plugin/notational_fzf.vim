@@ -16,19 +16,6 @@ endif
 
 "============================== User settings ==============================
 
-
-if !exists('g:nv_search_paths')
-
-    if exists('g:nv_directories')
-        echoerr '`g:nv_directories` has been renamed `g:nv_search_paths`. Please update your config files.'
-    else
-        echoerr '`g:nv_search_paths` is not defined.'
-    endif
-
-    finish
-
-endif
-
 let s:window_direction = get(g:, 'nv_window_direction', 'down')
 let s:window_width = get(g:, 'nv_window_width', '40%')
 let s:window_command = get(g:, 'nv_window_command', '')
@@ -53,9 +40,6 @@ let s:include_hidden = get(g:, 'nv_include_hidden', 0) ? '--hidden' : ''
 " How wide to make preview window. 72 characters is default.
 let s:preview_width = exists('g:nv_preview_width') ? string(float2nr(str2float(g:nv_preview_width) / 100.0 * &columns)) : ''
 
-" Expand all directories and escape metacharacters to avoid issues later.
-let s:search_paths = map(copy(g:nv_search_paths), 'expand(v:val)')
-
 " Separator for yanked files
 let s:yank_separator = get(g:, 'nv_yank_separator', "\n")
 
@@ -69,27 +53,12 @@ else
   let s:command = 'command'
 endif
 
-" The `exists()` check needs to be first in case the main directory is not
-" part of `g:nv_search_paths`.
 if exists('g:nv_main_directory')
     let s:main_dir = g:nv_main_directory
 else
-    for path in s:search_paths
-        if isdirectory(path)
-            let s:main_dir = path
-            break
-        endif
-    endfor
-
-    " this awkward bit of code is to get around the lack of a for-else
-    " loop in vim
-    if !exists('s:main_dir')
-        echomsg 'no directories found in `g:nv_search_paths`'
-        finish
-    endif
+    echomsg 'no `nv_main_directory` set!'
+    finish
 endif
-
-let s:search_path_str = join(map(copy(s:search_paths), 'shellescape(v:val)'))
 
 "=========================== Keymap ========================================
 
@@ -215,6 +184,7 @@ command! -nargs=* -bang NV
           \ fzf#wrap({
               \ 'sink*': function(exists('*NV_note_handler') ? 'NV_note_handler' : '<sid>handler'),
               \ 'window': s:window_command,
+              \ 'dir': s:main_dir,
               \ 'source': join([
                    \ s:command,
                    \ 'rg',
@@ -231,7 +201,6 @@ command! -nargs=* -bang NV
                    \ ((<q-args> is '') ?
                      \ '"\S"' :
                      \ shellescape(<q-args>)),
-                   \ s:search_path_str,
                    \ s:format_path_expr,
                    \ '2>' . s:null_path,
                    \ ]),
