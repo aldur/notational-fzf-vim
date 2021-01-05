@@ -113,5 +113,13 @@ def process_line(line: str) -> str:
 
 
 if __name__ == "__main__":
-    for line in stdin:
-        print(process_line(line))
+    for line in stdin.buffer.raw:
+        try:
+            line = line.decode('utf-8')
+        except UnicodeDecodeError:
+            continue  # Skip line if we can't decode it
+
+        try:
+            print(process_line(line))
+        except Exception:
+            pass  # Skip line if we can't process it
