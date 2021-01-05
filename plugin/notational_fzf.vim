@@ -177,8 +177,6 @@ endfunction
 " form 'N.. ' where N is a number.
 
 " Use `command` in front of 'rg' to ignore aliases.
-" The `' "\S" '` is so that the backslash itself doesn't require escaping.
-" g:search_paths is already shell escaped, so we don't do it again
 command! -nargs=* -bang NV
       \ call fzf#run(
           \ fzf#wrap({
@@ -193,14 +191,12 @@ command! -nargs=* -bang NV
                    \ '--smart-case',
                    \ s:include_hidden,
                    \ '--line-number',
-                   \ '--color never',
+                   \ '--color always',
                    \ '--no-messages',
                    \ s:nv_ignore_pattern,
                    \ '--no-heading',
                    \ '--with-filename',
-                   \ ((<q-args> is '') ?
-                     \ '"\S"' :
-                     \ shellescape(<q-args>)),
+                   \ shellescape(<q-args>),
                    \ s:format_path_expr,
                    \ '2>' . s:null_path,
                    \ ]),
